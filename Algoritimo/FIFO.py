@@ -1,10 +1,13 @@
-class FIFO:
-    def __init__(self, capacidade=10):
-        self.capacidade = capacidade
-        self.cache = {}
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+from Sistema.Cache import Cache
+
+class FIFO(Cache):
+    def __init__(self, cap=10):
+        super().__init__(cap)
         self.fila = []
-        self.hits = 0
-        self.misses = 0
 
     def buscar_texto(self, numero_texto):
         if numero_texto in self.cache:
@@ -16,9 +19,9 @@ class FIFO:
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:
-            return  # Texto já está no cache
-
-        if len(self.cache) >= self.capacidade:
+            return  
+        
+        if len(self.cache) >= self.cap:
             texto_removido = self.fila.pop(0)
             del self.cache[texto_removido]
 

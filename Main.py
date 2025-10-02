@@ -2,7 +2,7 @@ import time
 import os
 import sys
 from Sistema.CarregadorDeTexto import CarregadorDeTexto
-from Sistema.cache import Cache
+from Sistema.Cache import Cache
 from Algoritimo.FIFO import FIFO
 from Algoritimo.LRU import LRU
 from Algoritimo.LFU import LFU
@@ -73,7 +73,7 @@ def main():
                 mostrar_texto(texto, numero_texto, tempo)
             else:
                 texto = carregador.carregar_texto(numero_texto)
-                algoritimo_cache.inserir(numero_texto, texto)
+                algoritimo_cache.adicionar_texto(numero_texto, texto)
                 tempo = time.time() - inicio
                 print(f"Texto {numero_texto} carregado do disco")
                 mostrar_texto(texto, numero_texto, tempo)
