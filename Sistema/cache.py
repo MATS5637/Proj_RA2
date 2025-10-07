@@ -4,6 +4,16 @@ class Cache:
         self.cache = {}
         self.hits = 0
         self.misses = 0
+    
+    def buscar_texto(self, numero_texto):
+        raise NotImplementedError("Este método deve ser implementado.")
+    
+    def adicionar_texto(self, numero_texto, texto):
+        raise NotImplementedError("Este método deve ser implementado.")
+    
+    def inserir(self, numero_texto, texto):
+        self.adicionar_texto(numero_texto, texto)
+
 
     def stats(self):
         total = self.hits + self.misses
@@ -15,3 +25,4 @@ class Cache:
             'taxa_hit': f'{taxa:.1f}%',
             'capacidade': self.cap
         }
+    

@@ -59,3 +59,4 @@ class Metrica:
             "Número de Misses do Texto": count
         }
         return relatorio
+    

@@ -9,7 +9,7 @@ from Simulacao.Probabilidade import Probabilidade
 
 class Simulador:
     def __init__(self):
-        self.carregador = CarregadorDeTexto("textos/")
+        self.carregador = CarregadorDeTexto("Textos/")
         self.algoritmos = {
             "FIFO": FIFO(),
             "LRU": LRU(),
