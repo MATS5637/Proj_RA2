@@ -7,13 +7,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'Algoritimo'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Simulacao'))
 
 from Sistema.CarregadorDeTexto import CarregadorDeTexto
-from Sistema.Cache import Cache
 from Algoritimo.FIFO import FIFO
 from Algoritimo.LRU import LRU
 from Algoritimo.LFU import LFU
 from Simulacao.Simulador import Simulador
-from Simulacao.Metrica import Metrica
-from Simulacao.Probabilidade import Probabilidade
+
+mapa = {"FIFO": FIFO, "LRU": LRU, "LFU": LFU}
+ARQ_Escolhido="algoritmo_escolhido.txt"
 
 def inicializar_sistema():
     try:
@@ -22,8 +22,14 @@ def inicializar_sistema():
         
         
         carregador = CarregadorDeTexto("Textos/")
-        algoritimo_cache = FIFO()
         simulador = Simulador()
+        escolhido = "FIFO"
+        if os.path.exists(ARQ_Escolhido):
+            with open(ARQ_Escolhido, encoding="utf-8") as f:
+                escolhido = f.read().strip()
+        
+        algoritimo_cache = mapa.get(escolhido, FIFO)()
+        print(f"Algoritimo de cache escolhido: {escolhido}")
         return carregador, algoritimo_cache, simulador
     
     except Exception as e:
@@ -34,7 +40,11 @@ def mostrar_texto(texto, numero_texto, tempo):
     print(f"\n" + "="*40)
     print(f"Texto {numero_texto} - {tempo:.4f} segundos")
     print("="*40)
-    print(texto)
+    if texto is None:
+        print("Arquivo não existe.")
+    else:
+        preview = texto[:500] + "..." if len(texto) > 500 else texto
+        print(preview)
     print("="*40 + "\n")
     input("Pressione Enter para continuar...")
 
@@ -66,23 +76,29 @@ def main():
         opcao = interface()
         if opcao == -1:
             print("Iniciando modo simulação...")
-            time.sleep(2)
-            simulador.executar()
+            time.sleep(1)
+            vencedor=simulador.executar()
+            algoritimo_cache=mapa.get(vencedor, FIFO)()
+            print(f"Cache ativo alterado para : {vencedor}")
         else:
             numero_texto = opcao
             inicio = time.time()
             texto = algoritimo_cache.buscar_texto(numero_texto)
-            if texto:
+            if texto is not None:
                 tempo = time.time() - inicio
                 print(f"Texto {numero_texto} encontrado no cache")
                 mostrar_texto(texto, numero_texto, tempo)
             else:
-                texto = carregador.carregar_texto(numero_texto)
-                if texto: 
-                    algoritimo_cache.adicionar_texto(numero_texto, texto)
+                conteudo = carregador.carregar_texto(numero_texto)
                 tempo = time.time() - inicio
-                print(f"Texto {numero_texto} carregado do disco")
-                mostrar_texto(texto, numero_texto, tempo)
+                if conteudo is not None:
+                    print(f"Texto {numero_texto} carregado do disco")
+                    algoritimo_cache.adicionar_texto(numero_texto, conteudo)
+                else:
+                    print(f"Texto {numero_texto} Não encontrado no disco")
+
+                mostrar_texto(conteudo, numero_texto, tempo)
 
 if __name__ == "__main__":
     main()
+    

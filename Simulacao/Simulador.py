@@ -18,7 +18,7 @@ class Simulador:
         resultados = []
 
         for nome, ClasseAlgoritimo in algoritmos:
-            metrica_total = Metrica(ClasseAlgoritimo())  
+            metrica_total = Metrica(ClasseAlgoritimo()) 
 
             for usuario in usuarios:
                 for tipo, solicitacoes in usuario["solicitacoes"].items():
@@ -33,26 +33,38 @@ class Simulador:
                             metrica_cenario.registro_hit(time.time() - inicio)
                         else:
                             texto_real = self.carregador.carregar_texto(texto_id)
-                            cache.adicionar_texto(texto_id, texto_real)
-                            metrica_cenario.registro_miss(time.time() - inicio, texto_id)
+                            if texto_real is not None:
+                                cache.adicionar_texto(texto_id, texto_real)
+                                metrica_cenario.registro_miss(time.time() - inicio, texto_id)
+                            else:
+                                print(f"Texto {texto_id} não encontrado no disco.")
+                                continue
                     
                     metrica_total.hits += metrica_cenario.hits
                     metrica_total.misses += metrica_cenario.misses
                     metrica_total.t_cache.extend(metrica_cenario.t_cache)
                     metrica_total.t_disco.extend(metrica_cenario.t_disco)
 
+                    for texto_id, t in metrica_cenario.misses_texto.items():
+                        metrica_total.misses_texto[texto_id] += t
+
             resultados.append((nome, metrica_total))
-            print(f"{nome} - Hits: {metrica_total.hits}, Misses: {metrica_total.misses}, "
-                    f"Taxa de hits: {metrica_total.taxa_hit():.1f}%")
 
-        melhor_nome, melhor_metrica = max(resultados, key=lambda x: x[1].taxa_hit())
-
+        print("\nResultados:")
+        melhor_nome, melhor_taxa = None, -1.0
+        for nome, m in resultados:
+            total = m.hits + m.misses
+            taxa = (m.hits/ total * 100) if total > 0 else 0
+            print(f"{nome}: Hits={m.hits}, Misses={m.misses}, Taxa de Hits={taxa:.1f}%")
+            if taxa > melhor_taxa:
+                melhor_nome, melhor_taxa = nome, taxa
+        print(f"\nMelhor Algoritimo: {melhor_nome}")
+        
         self.gerar_graficos(resultados)
 
-        with open("algoritimo_escolhido.txt", "w") as f:
+        with open("algoritmo_escolhido.txt", "w", encoding="utf-8") as f:
             f.write(melhor_nome)
 
-        print(f"\nMelhor Algoritimo: {melhor_nome} ({melhor_metrica.taxa_hit():.1f}% de hits)")
         return melhor_nome
 
     def gerar_graficos(self, resultados):

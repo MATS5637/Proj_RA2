@@ -17,5 +17,5 @@ class CarregadorDeTexto:
                 return arquivo.read()
         except FileNotFoundError:
             print(f"Arquivo {caminho_arquivo} não encontrado.")
-            return f"Texto {numero_texto} não encontrado."
+            return None
         
