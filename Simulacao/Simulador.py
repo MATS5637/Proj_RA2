@@ -1,3 +1,4 @@
+import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,21 +12,30 @@ from Simulacao.Probabilidade import Probabilidade
 class Simulador:
     def __init__(self):
         self.carregador = CarregadorDeTexto("Textos/")
+        self.ids_existentes = {
+            int(fn[5:-4]) for fn in os.listdir("Textos")
+            if fn.startswith("texto") and fn.endswith(".txt") and fn[5:-4].isdigit()
+        }
+        print(f"Arquivos detectados: {sorted(self.ids_existentes)}")
     
     def executar(self):
+        print(f"Iniciando simulação com {len(self.ids_existentes)} textos disponíveis.")
         usuarios = Probabilidade.gerar_usuarios(3, 200)
         algoritmos = [("FIFO", FIFO), ("LRU",LRU), ("LFU",LFU)]
         resultados = []
 
         for nome, ClasseAlgoritimo in algoritmos:
+            print(f"\nSimulando com o algoritmo: {nome}")
             metrica_total = Metrica(ClasseAlgoritimo()) 
 
             for usuario in usuarios:
-                for tipo, solicitacoes in usuario["solicitacoes"].items():
+                for _, solicitacoes in usuario["solicitacoes"].items():
                     cache = ClasseAlgoritimo()
                     metrica_cenario = Metrica(cache)
 
                     for texto_id in solicitacoes:
+                        if texto_id not in self.ids_existentes:
+                            continue
                         inicio = time.time()
                         texto = cache.buscar_texto(texto_id)
 
@@ -45,20 +55,20 @@ class Simulador:
                     metrica_total.t_cache.extend(metrica_cenario.t_cache)
                     metrica_total.t_disco.extend(metrica_cenario.t_disco)
 
-                    for texto_id, t in metrica_cenario.misses_texto.items():
-                        metrica_total.misses_texto[texto_id] += t
-
             resultados.append((nome, metrica_total))
+            taxa = metrica_total.taxa_hit()
+            print(f"   {nome}: {metrica_total.hits} hits, {metrica_total.misses} misses, Taxa de Hits: {taxa:.2f}%")
 
         print("\nResultados:")
         melhor_nome, melhor_taxa = None, -1.0
         for nome, m in resultados:
-            total = m.hits + m.misses
-            taxa = (m.hits/ total * 100) if total > 0 else 0
-            print(f"{nome}: Hits={m.hits}, Misses={m.misses}, Taxa de Hits={taxa:.1f}%")
+            taxa = m.taxa_hit()
+            print(f"{nome}:")
+            print(f"Hits: {m.hits}, Misses: {m.misses}, Taxa de Hits: {taxa:.2f}%")
+            print(f"Tempo Médio Cache: {m.tempo_medio_cache():.4f}s, Tempo Médio Disco: {m.tempo_medio_disco():.4f}s, Tempo Médio Total: {m.tempo_medio_total():.4f}s")
             if taxa > melhor_taxa:
                 melhor_nome, melhor_taxa = nome, taxa
-        print(f"\nMelhor Algoritimo: {melhor_nome}")
+        print(f"\nMelhor Algoritimo: {melhor_nome} ({melhor_taxa: .2f}%)")
         
         self.gerar_graficos(resultados)
 
@@ -72,6 +82,8 @@ class Simulador:
         taxas = [m.taxa_hit() for _, m in resultados]
         tcache = [m.tempo_medio_cache() for _, m in resultados]
         tdisco = [m.tempo_medio_disco() for _, m in resultados]
+        tcache_ms= [t * 1000 for t in tcache]
+        tdisco_ms= [t * 1000 for t in tdisco]
         plt.figure()
         bars = plt.bar(algo_graf, taxas, alpha=0.85)
         plt.ylim(0, 100)
@@ -87,10 +99,10 @@ class Simulador:
         x= np.arange(len(algo_graf))
         w=0.38
         plt.figure()
-        plt.bar(x - w/2, tcache, width=w, label='Tempo Médio Cache (s)', alpha=0.85)
-        plt.bar(x + w/2, tdisco, width=w, label='Tempo Médio Disco (s)', alpha=0.85)
+        plt.bar(x - w/2, tcache_ms, width=w, label='Tempo Médio Cache (ms)', alpha=0.85)
+        plt.bar(x + w/2, tdisco_ms, width=w, label='Tempo Médio Disco (ms)', alpha=0.85)
         plt.xticks(x, algo_graf)
-        plt.ylabel('Tempo Médio (s)')
+        plt.ylabel('Tempo Médio (ms)')
         plt.title('Tempo Médio por Algoritmo (Cache vs Disco)')
         plt.legend()
         plt.grid(True, axis='y', alpha=0.3)
