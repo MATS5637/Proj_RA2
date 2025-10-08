@@ -21,10 +21,12 @@ class LRU(Cache):
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:
+            self.ultimo_uso.remove(numero_texto)
+            self.ultimo_uso.append(numero_texto)
             return
         if len(self.cache) >= self.cap:
             ultimo_usado = self.ultimo_uso.pop(0)
-
             del self.cache[ultimo_usado]
+
         self.cache[numero_texto] = texto
         self.ultimo_uso.append(numero_texto)

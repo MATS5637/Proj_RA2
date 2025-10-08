@@ -1,6 +1,11 @@
 import time
 import os
 import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'Sistema'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'Algoritimo'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'Simulacao'))
+
 from Sistema.CarregadorDeTexto import CarregadorDeTexto
 from Sistema.Cache import Cache
 from Algoritimo.FIFO import FIFO
@@ -73,7 +78,8 @@ def main():
                 mostrar_texto(texto, numero_texto, tempo)
             else:
                 texto = carregador.carregar_texto(numero_texto)
-                algoritimo_cache.adicionar_texto(numero_texto, texto)
+                if texto: 
+                    algoritimo_cache.adicionar_texto(numero_texto, texto)
                 tempo = time.time() - inicio
                 print(f"Texto {numero_texto} carregado do disco")
                 mostrar_texto(texto, numero_texto, tempo)

@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+
 from Sistema.Cache import Cache
 
 class LFU(Cache):
@@ -20,14 +21,16 @@ class LFU(Cache):
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:
+            self.frequencia[numero_texto] += 1
             return
         
         if len(self.cache) >= self.cap:
-            texto_menos_frequente = min(self.frequencia, key=self.frequencia.get)
+            min_frequencia = min(self.frequencia.values())
+            candidatos = [k for k, v in self.frequencia.items() if v == min_frequencia]
+            texto_remover = candidatos[0]
             
-            del self.cache[texto_menos_frequente]
-            del self.frequencia[texto_menos_frequente]
+            del self.cache[texto_remover]
+            del self.frequencia[texto_remover]
 
         self.cache[numero_texto] = texto
         self.frequencia[numero_texto] = 1
-          # Defina a capacidade da cache conforme necessário

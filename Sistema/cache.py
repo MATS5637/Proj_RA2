@@ -1,18 +1,19 @@
-class Cache:
+from abc import ABC, abstractmethod
+
+class Cache(ABC):
     def __init__(self, cap=10):
         self.cap = cap
         self.cache = {}
         self.hits = 0
         self.misses = 0
     
+    @abstractmethod
     def buscar_texto(self, numero_texto):
-        raise NotImplementedError("Este método deve ser implementado.")
+        pass
     
+    @abstractmethod
     def adicionar_texto(self, numero_texto, texto):
-        raise NotImplementedError("Este método deve ser implementado.")
-    
-    def inserir(self, numero_texto, texto):
-        self.adicionar_texto(numero_texto, texto)
+        pass
 
 
     def stats(self):
