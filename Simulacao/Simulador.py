@@ -1,4 +1,3 @@
-import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,30 +11,22 @@ from Simulacao.Probabilidade import Probabilidade
 class Simulador:
     def __init__(self):
         self.carregador = CarregadorDeTexto("Textos/")
-        self.ids_existentes = {
-            int(fn[5:-4]) for fn in os.listdir("Textos")
-            if fn.startswith("texto") and fn.endswith(".txt") and fn[5:-4].isdigit()
-        }
-        print(f"Arquivos detectados: {sorted(self.ids_existentes)}")
     
     def executar(self):
-        print(f"Iniciando simulação com {len(self.ids_existentes)} textos disponíveis.")
         usuarios = Probabilidade.gerar_usuarios(3, 200)
         algoritmos = [("FIFO", FIFO), ("LRU",LRU), ("LFU",LFU)]
         resultados = []
 
         for nome, ClasseAlgoritimo in algoritmos:
-            print(f"\nSimulando com o algoritmo: {nome}")
+            print(f"\nResultados do algoritmo {nome}:")
             metrica_total = Metrica(ClasseAlgoritimo()) 
+            cache = ClasseAlgoritimo()
 
             for usuario in usuarios:
                 for _, solicitacoes in usuario["solicitacoes"].items():
-                    cache = ClasseAlgoritimo()
                     metrica_cenario = Metrica(cache)
 
                     for texto_id in solicitacoes:
-                        if texto_id not in self.ids_existentes:
-                            continue
                         inicio = time.time()
                         texto = cache.buscar_texto(texto_id)
 
@@ -54,6 +45,9 @@ class Simulador:
                     metrica_total.misses += metrica_cenario.misses
                     metrica_total.t_cache.extend(metrica_cenario.t_cache)
                     metrica_total.t_disco.extend(metrica_cenario.t_disco)
+
+                    for texto_id, qtd in metrica_cenario.misses_texto.items():
+                        metrica_total.misses_texto[texto_id] += qtd
 
             resultados.append((nome, metrica_total))
             taxa = metrica_total.taxa_hit()
@@ -109,6 +103,29 @@ class Simulador:
         plt.tight_layout()
         plt.savefig('comparacao_tempo_medio.png', dpi=300)
         plt.show()
+
+        from collections import defaultdict
+        misses_totais = defaultdict(int)
+        for _, m in resultados:
+            for texto_id, qtd in m.misses_texto.items():
+                misses_totais[texto_id] += qtd
+        
+        if misses_totais:
+            top = sorted(misses_totais.items(), key=lambda item: item[1], reverse=True)[:10]
+            labels = [f"texto {tid}" for tid, _ in top]
+            valores = [q for _, q in top]
+
+            plt.figure()
+            bars3 = plt.bar(labels, valores, alpha=0.85)
+            plt.ylabel('Número de Misses')
+            plt.title('Top 10 Textos com Mais Misses (Todos Algoritmos)')
+            for b, v in zip(bars3, valores):
+                plt.text(b.get_x() + b.get_width() / 2, b.get_height()+0.5, f"{v}", ha='center', va='bottom')
+            plt.xticks(rotation=30, ha='right')
+            plt.grid(True, axis='y', alpha=0.3)
+            plt.tight_layout()
+            plt.savefig('top10_misses_textos.png', dpi=300)
+            plt.show()
 
         print("\nGráficos gerados: ")
         print(" - comparacao_taxa_hits.png (Taxa de Hit)")

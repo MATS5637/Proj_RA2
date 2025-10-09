@@ -10,14 +10,7 @@ class LRU(Cache):
         self.ultimo_uso = []
 
     def buscar_texto(self, numero_texto):
-        if numero_texto in self.cache:
-            self.hits += 1
-            self.ultimo_uso.remove(numero_texto)
-            self.ultimo_uso.append(numero_texto)
-            return self.cache[numero_texto]
-        else:
-            self.misses += 1
-            return None
+            return self.cache.get(numero_texto, None)
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:

@@ -10,12 +10,7 @@ class FIFO(Cache):
         self.fila = []
 
     def buscar_texto(self, numero_texto):
-        if numero_texto in self.cache:
-            self.hits += 1
-            return self.cache[numero_texto]
-        else:
-            self.misses += 1
-            return None
+            return self.cache.get(numero_texto, None)
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:
