@@ -22,6 +22,9 @@ def inicializar_sistema():
         
         
         carregador = CarregadorDeTexto("Textos/")
+        faltando = [i for i in range(1,101) if not os.path.exists(os.path.join("Textos",f"texto{i}.txt"))]
+        if faltando:
+            raise Exception(f"Faltam {len(faltando)} arquivos de texto")
         simulador = Simulador()
         escolhido = "FIFO"
         if os.path.exists(ARQ_Escolhido):
@@ -36,15 +39,17 @@ def inicializar_sistema():
             print(f"Erro na inicialização: {e}")
             sys.exit(1)
 
-def mostrar_texto(texto, numero_texto, tempo):
+def mostrar_texto(texto, numero_texto, inicio):
     print(f"\n" + "="*40)
-    print(f"Texto {numero_texto} - {tempo:.4f} segundos")
+    print(f"Texto {numero_texto}")
     print("="*40)
     if texto is None:
         print("Arquivo não existe.")
     else:
         print(texto)
     print("="*40 + "\n")
+    tempo = time.time() - inicio
+    print(f"Tempo total: {tempo:.4f} segundos")
     input("Pressione Enter para continuar...")
 
 def interface():
@@ -84,19 +89,17 @@ def main():
             inicio = time.time()
             texto = algoritimo_cache.buscar_texto(numero_texto)
             if texto is not None:
-                tempo = time.time() - inicio
                 print(f"Texto {numero_texto} encontrado no cache")
-                mostrar_texto(texto, numero_texto, tempo)
+                mostrar_texto(texto, numero_texto, inicio)
             else:
                 conteudo = carregador.carregar_texto(numero_texto)
-                tempo = time.time() - inicio
                 if conteudo is not None:
                     print(f"Texto {numero_texto} carregado do disco")
                     algoritimo_cache.adicionar_texto(numero_texto, conteudo)
                 else:
                     print(f"Texto {numero_texto} Não encontrado no disco")
 
-                mostrar_texto(conteudo, numero_texto, tempo)
+                mostrar_texto(conteudo, numero_texto, inicio)
 
 if __name__ == "__main__":
     main()

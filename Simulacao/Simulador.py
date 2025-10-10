@@ -44,6 +44,9 @@ class Simulador:
                                 continue
                             cache.adicionar_texto(texto_id, texto_real)
                             metrica_cenario.registro_miss(time.time() - inicio, texto_id)
+                    print(f"[{nome}] Usuario {usuario_id} | {padrao}: "
+                        f"hits={metrica_cenario.hits}, misses = {metrica_cenario.misses}, taxa de hit = {metrica_cenario.taxa_hit():.2f}%")
+                            
                               
                     metrica_total.hits += metrica_cenario.hits
                     metrica_total.misses += metrica_cenario.misses
