@@ -1,6 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import defaultdict
 from Algoritimo.FIFO import FIFO
 from Algoritimo.LRU import LRU
 from Algoritimo.LFU import LFU
@@ -104,7 +105,6 @@ class Simulador:
         plt.savefig('comparacao_tempo_medio.png', dpi=300)
         plt.show()
 
-        from collections import defaultdict
         misses_totais = defaultdict(int)
         for _, m in resultados:
             for texto_id, qtd in m.misses_texto.items():

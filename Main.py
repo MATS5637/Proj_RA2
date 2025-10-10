@@ -43,8 +43,7 @@ def mostrar_texto(texto, numero_texto, tempo):
     if texto is None:
         print("Arquivo não existe.")
     else:
-        preview = texto[:500] + "..." if len(texto) > 500 else texto
-        print(preview)
+        print(texto)
     print("="*40 + "\n")
     input("Pressione Enter para continuar...")
 
