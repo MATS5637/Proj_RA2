@@ -20,28 +20,31 @@ class Simulador:
 
         for nome, ClasseAlgoritimo in algoritmos:
             print(f"\nResultados do algoritmo {nome}:")
-            metrica_total = Metrica(ClasseAlgoritimo()) 
+            metrica_total = Metrica(nome_algoritimo=nome) 
             cache = ClasseAlgoritimo()
 
             for usuario in usuarios:
-                for _, solicitacoes in usuario["solicitacoes"].items():
-                    metrica_cenario = Metrica(cache)
+                usuario_id = usuario["usuario_id"]
+                for padrao, solicitacoes in usuario["solicitacoes"].items():
+                    metrica_cenario = Metrica(
+                        nome_algoritimo=nome,
+                        usuario_id=usuario_id,
+                        padrao_acesso=padrao
+                    )
 
                     for texto_id in solicitacoes:
                         inicio = time.time()
                         texto = cache.buscar_texto(texto_id)
 
                         if texto is not None:
-                            metrica_cenario.registro_hit(time.time() - inicio)
+                            metrica_cenario.registro_hit(time.time() - inicio, texto_id)
                         else:
                             texto_real = self.carregador.carregar_texto(texto_id)
-                            if texto_real is not None:
-                                cache.adicionar_texto(texto_id, texto_real)
-                                metrica_cenario.registro_miss(time.time() - inicio, texto_id)
-                            else:
-                                print(f"Texto {texto_id} não encontrado no disco.")
+                            if texto_real is None:
                                 continue
-                    
+                            cache.adicionar_texto(texto_id, texto_real)
+                            metrica_cenario.registro_miss(time.time() - inicio, texto_id)
+                              
                     metrica_total.hits += metrica_cenario.hits
                     metrica_total.misses += metrica_cenario.misses
                     metrica_total.t_cache.extend(metrica_cenario.t_cache)
@@ -49,6 +52,10 @@ class Simulador:
 
                     for texto_id, qtd in metrica_cenario.misses_texto.items():
                         metrica_total.misses_texto[texto_id] += qtd
+                    for texto_id, qtd in metrica_cenario.hits_texto.items():
+                        metrica_total.hits_texto[texto_id] += qtd
+                    for texto_id, tempos in metrica_cenario.tempos_por_texto.items():
+                        metrica_total.tempos_por_texto[texto_id].extend(tempos)
 
             resultados.append((nome, metrica_total))
             taxa = metrica_total.taxa_hit()
@@ -130,6 +137,7 @@ class Simulador:
         print("\nGráficos gerados: ")
         print(" - comparacao_taxa_hits.png (Taxa de Hit)")
         print(" - comparacao_tempo_medio.png (Tempo Médio Cache vs Disco)")
+        print(" - top10_misses_textos.png (Misses por texto)")
 
 if __name__ == "__main__":
     Simulador().executar()

@@ -11,11 +11,14 @@ class LFU(Cache):
         self.frequencia = {}
 
     def buscar_texto(self, numero_texto):
-            return self.cache.get(numero_texto, None)
+        if numero_texto in self.cache:
+            self.frequencia[numero_texto] = self.frequencia.get(numero_texto, 0) + 1
+            return self.cache[numero_texto]
+        return None
 
     def adicionar_texto(self, numero_texto, texto):
         if numero_texto in self.cache:
-            self.frequencia[numero_texto] += 1
+            self.frequencia[numero_texto] = self.frequencia.get(numero_texto, 0) + 1
             return
         
         if len(self.cache) >= self.cap:
@@ -27,4 +30,4 @@ class LFU(Cache):
             del self.frequencia[texto_remover]
 
         self.cache[numero_texto] = texto
-        self.frequencia[numero_texto] = 1
+        self.frequencia[numero_texto] = self.frequencia.get(numero_texto, 0) + 1
