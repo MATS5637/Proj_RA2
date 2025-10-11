@@ -22,7 +22,7 @@ def inicializar_sistema():
         
         
         carregador = CarregadorDeTexto("Textos/")
-        faltando = [i for i in range(1,101) if not os.path.exists(os.path.join("Textos",f"texto{i}.txt"))]
+        faltando = [i for i in range(1,50) if not os.path.exists(os.path.join("Textos",f"texto{i}.txt"))]
         if faltando:
             raise Exception(f"Faltam {len(faltando)} arquivos de texto")
         simulador = Simulador()
